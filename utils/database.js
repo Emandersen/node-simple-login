@@ -33,5 +33,5 @@ function pushUserToDatabase(db, username, password, work_position) {
 
 module.exports = {
     connectToDatabase,
-    checkDatabaseConnection
+    pushUserToDatabase
 };
