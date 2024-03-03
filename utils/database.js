@@ -1,35 +1,37 @@
 var mongodb = require('mongodb');
-var config = require('../conf.js'); // Adjust the path as needed
+var conf = require('../conf.js').config; // Adjust the path as needed
 
 function connectToDatabase() {
     return new Promise((resolve, reject) => {
-        mongodb.MongoClient.connect(`mongodb+srv://${config.username}:${config.password}@mongodbtest.01dwifl.mongodb.net/${config.database}?retryWrites=true&w=majority&appName=mongoDBTest`, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
+        mongodb.MongoClient.connect(conf.database_string, (err, client) => {
             if (err) {
                 return reject(err);
             }
-            resolve(client.db(config.database));
+            // Extract the database name from the connection string
+            const dbName = conf.database_string.split('/').pop().split('?')[0];
+            resolve(client.db(dbName));
         });
     });
 }
 
-
-function pingDatabase() {
+// register user, with username, password, work_position
+function pushUserToDatabase(db, username, password, work_position) {
     return new Promise((resolve, reject) => {
-        connectToDatabase().then((db) => {
-            db.command({ ping: 1 }, (err, result) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(result);
-            });
-        }).catch((err) => {
-            reject(err);
+        const collection = db.collection('users');
+        collection.insertOne({ username: username, password: password, work_position: work_position }, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
         });
     });
 }
+
+    
+
 
 
 module.exports = {
     connectToDatabase,
-    pingDatabase
+    checkDatabaseConnection
 };
